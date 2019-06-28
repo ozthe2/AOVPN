@@ -29,6 +29,8 @@ Date: 20190628
 Created By: OzThe2
 .LINK
 https://fearthepanda.com
+.LINK
+https://leanpub.com/configmgr-DeployUsingPS
 #>
 
     [CmdletBinding()]

@@ -1,0 +1,71 @@
+Function Start-AOVPN {
+
+<#
+.Synopsis
+Attempts to reconnect to AOVPN if the connection fails unexpectedly.
+.DESCRIPTION
+Use this script with a scheduled task that is triggered by Event ID's such as waking from sleep \ hibernation \ network change etc.
+- Firstly a check is made to see if the computer is on the corporate domain, if it is, then do nothing.
+- Then, if the computer is not on the corporate domain and all the while that the AOVPN is not connected, attempt up to x times to reconnect before (optionally) giving up.
+.PARAMETER AOVPNName
+The name of your AOVPN implementation.  You can obtain this by running the following PowerShell cmdlet: (get-vpnconnection).name
+.PARAMETER ConnectionAttempts
+The number of reconnection attempts (1 to 60) to make following a 2 second pause until giving up.  Enter 0 to try until a connection is made. Defaults to 30 attempts if you do not use this parameter.
+.EXAMPLE
+Start-AOVPN -AOVPNName "my-aovpn"
+
+Attempt to reconnect to the AOVPN and try 30 times with 2 second intervals between each attempt.  After 30 attempts, if the connection has not been made, then give up.
+.EXAMPLE
+Start-AOVPN -AOVPNName "my-aovpn" -ConnectionAttempts 10
+
+Attempt to reconnect to the AOVPN and try 10 times with 2 second intervals between each attempt.  After 10 attempts, if the connection has not been made, then give up.
+.EXAMPLE
+Start-AOVPN -AOVPNName "my-aovpn" -ConnectionAttempts 0
+
+Attempt to reconnect to the AOVPN and try indefinitely with 2 second intervals between each attempt until a connection has been re-established.
+.NOTES
+Version: 1.0.0
+Date: 20190628
+Created By: OzThe2
+.LINK
+https://fearthepanda.com
+#>
+
+    [CmdletBinding()]
+
+    param(
+        [Parameter(
+            Position = 0,
+            Mandatory = $true)]
+            [string][ValidateNotNullOrEmpty()]$AOVPNName,
+        [Parameter(
+            Position = 1,
+            Mandatory = $false,
+            ValueFromPipeline = $true)]        
+            [Int32][ValidateRange(0,60)]$ConnectionAttempts = 30
+    )
+
+    BEGIN {
+        $Tries = 0
+
+        # -- Determine if we are domain authenticated or not --
+        Get-NetConnectionProfile | % {if ($_.NetworkCategory -eq 'DomainAuthenticated') {$OnDomain = $true}else{$OnDOmain = $false}}
+    }
+    
+    PROCESS {       
+        if (!($OnDOmain)) {
+            while ((Get-VpnConnection $AOVPNName).ConnectionStatus -ne 'Connected') {
+                # -- Attempt to reconnect --
+                start-process -FilePath $env:windir\system32\rasdial.exe -ArgumentList $AOVPNName
+                                
+                start-sleep -Seconds 2
+
+                if ($ConnectionAttempts -gt 0) {
+                    $tries++
+                    # -- Attempted to reconnect xx times but failed - give up --
+                    if ($tries -eq $ConnectionAttempts) {exit}
+                }
+            }
+        }
+    }
+}

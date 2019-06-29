@@ -51,11 +51,11 @@ https://leanpub.com/configmgr-DeployUsingPS
         $Tries = 0
 
         # -- Determine if we are domain authenticated or not --
-        Get-NetConnectionProfile | % {if ($_.NetworkCategory -eq 'DomainAuthenticated') {$OnDomain = $true}else{$OnDOmain = $false}}
+        Get-NetConnectionProfile | % {if ($_.NetworkCategory -eq 'DomainAuthenticated') {$OnDomain = $true}else{$OnDomain = $false}}
     }
     
     PROCESS {       
-        if (!($OnDOmain)) {
+        if (!($OnDomain)) {
             while ((Get-VpnConnection $AOVPNName).ConnectionStatus -ne 'Connected') {
                 # -- Attempt to reconnect --
                 start-process -FilePath $env:windir\system32\rasdial.exe -ArgumentList $AOVPNName

@@ -50,7 +50,7 @@ https://leanpub.com/configmgr-DeployUsingPS
         $Tries = 0
 
         # -- Determine if we are domain authenticated or not --
-        Get-NetConnectionProfile | % {if ($_.NetworkCategory -eq 'DomainAuthenticated') {$OnDomain = $true}else{$OnDomain = $false}}
+        Get-NetConnectionProfile | % {if ($_.NetworkCategory -eq 'DomainAuthenticated') {$OnDomain = $true;break}else{$OnDomain = $false}}
     }
     
     PROCESS {       

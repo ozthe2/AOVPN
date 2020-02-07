@@ -64,8 +64,7 @@ https://leanpub.com/configmgr-DeployUsingPS
     
     PROCESS {
         if (!($OnDomain)) {
-            while ((Get-VpnConnection $AOVPNName).ConnectionStatus -ne 'Connected') {
-            write-output "Trying to connect to: $AOVPNName" 
+            while ((Get-VpnConnection $AOVPNName).ConnectionStatus -ne 'Connected') {             
                 # -- Attempt to reconnect --
                 start-process -FilePath $env:windir\system32\rasdial.exe -ArgumentList $AOVPNName
                                

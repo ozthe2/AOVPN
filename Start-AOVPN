@@ -24,7 +24,7 @@ Start-AOVPN -AOVPNName "my-aovpn" -ConnectionAttempts 0
 
 Attempt to reconnect to the AOVPN and try indefinitely with 2 second intervals between each attempt until a connection has been re-established.
 .NOTES
-Version: 1.0.0
+Version: 1.0.1
 Date: 20190628
 Created By: OzThe2
 .LINK
@@ -48,17 +48,27 @@ https://leanpub.com/configmgr-DeployUsingPS
 
     BEGIN {
         $Tries = 0
+        $OnDomain = $false
 
-        # -- Determine if we are domain authenticated or not --
-        Get-NetConnectionProfile | % {if ($_.NetworkCategory -eq 'DomainAuthenticated') {$OnDomain = $true;break}else{$OnDomain = $false}}
+        # -- Determine if we are domain authenticated or not --     
+        $result = Get-NetConnectionProfile
+        foreach ($res in $result) {
+            if ($res.NetworkCategory -eq 'DomainAuthenticated') {
+                $OnDomain = $true
+                break
+            } else {
+                $OnDomain = $false
+            }
+        }     
     }
     
-    PROCESS {       
+    PROCESS {
         if (!($OnDomain)) {
             while ((Get-VpnConnection $AOVPNName).ConnectionStatus -ne 'Connected') {
+            write-output "Trying to connect to: $AOVPNName" 
                 # -- Attempt to reconnect --
                 start-process -FilePath $env:windir\system32\rasdial.exe -ArgumentList $AOVPNName
-                                
+                               
                 start-sleep -Seconds 2
 
                 if ($ConnectionAttempts -gt 0) {
